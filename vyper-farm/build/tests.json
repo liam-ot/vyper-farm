@@ -1,0 +1,49 @@
+{
+  "contracts": {
+    "Farm": "24d3c05ed8ca243cbd35d0752d7b5db9d1553ca2",
+    "Token": "16bb97c59ac5ff0d1ac210a8d998341e7a7d84fe"
+  },
+  "tests": {
+    "tests/test_create_farmer.py": {
+      "coverage": false,
+      "isolated": false,
+      "results": ".....",
+      "sha1": "d14a70a148dbcb544f1a18868f9ce3c5ef072199",
+      "txhash": [
+        "523cefeb5e3f231b31f7e9c579084fea0e6653c1",
+        "5ff58f10b68ad68c0f6e78dd28aabdaff620ef7f"
+      ]
+    }
+  },
+  "tx": {
+    "523cefeb5e3f231b31f7e9c579084fea0e6653c1": {
+      "Farm": {
+        "0": [
+          [
+            19,
+            21
+          ],
+          [
+            22
+          ],
+          [
+            20
+          ]
+        ]
+      }
+    },
+    "5ff58f10b68ad68c0f6e78dd28aabdaff620ef7f": {
+      "Farm": {
+        "0": [
+          [
+            19
+          ],
+          [
+            20
+          ],
+          []
+        ]
+      }
+    }
+  }
+}
