@@ -1,0 +1,3 @@
+- pay employees
+- create sale function
+- create cuopons
