@@ -24,7 +24,7 @@ struct farm:
     landAvailable: decimal
     border: bool
 
-struct farmer:
+struct farmer: 
     name: String[256]
     id: address
     land: decimal
