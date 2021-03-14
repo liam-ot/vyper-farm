@@ -11,11 +11,6 @@ num_employees: public(uint256)
 #contract owner, used for permissions checking and self destruct
 owner: address
 
-#fires when an item is sold
-event NewSale:
-    itemid: indexed(uint256)
-    quantity: indexed(uint256)
-
 #fires when item created
 event NewItem:
     id: indexed(uint256)
@@ -41,6 +36,7 @@ struct item:
     name: String[256]
     price: decimal
     sales: uint256
+    status: String[8]
 
 #data tracking
 idToItem: HashMap[uint256, item]
@@ -76,6 +72,24 @@ def _getCategory(_id: uint256) -> String[256]:
     #return category name: String[256]
     return self.idToCategory[_id]
 
+@view
+@internal
+def _getEmployee(_id: uint256) -> employee:
+    #check for faulty id
+    assert _id <= self.num_employees, 'Employee id not valid.'
+
+    #return employee
+    return self.idToEmployee[_id]
+
+@view
+@internal
+def _getEmployeeStatus(_id: uint256) -> String[32]:
+    #check for faulty id
+    assert _id <= self.num_employees, 'Employee id not valid.'
+
+    #return employee status: String[32]
+    return self.idToEmployee[_id].status
+
 @internal
 def _setItem(_category: uint256, _name: String[256], _price: decimal) -> bool:
     #check for faulty data
@@ -89,7 +103,8 @@ def _setItem(_category: uint256, _name: String[256], _price: decimal) -> bool:
         category: _category,
         name: _name,
         price: _price,
-        sales: 0
+        sales: 0,
+        status: 'Active'
     })
 
     #track changes
@@ -208,6 +223,63 @@ def _transferOwnership(_from: address, _to: address) -> bool:
 #############################WARNING##################################
 @internal
 def _destroyContract(_to: address):
+    #check data
     assert _to == self.owner, 'Only the owner may terminate their farm stand.'
 
+    #call built in selfdestruct function
     selfdestruct(_to)
+
+#external functions
+@view
+@external
+def getItem(id: uint256) -> item:
+    return self._getItem(id)
+
+@view
+@external
+def getCategory(id: uint256) -> String[256]:
+    return self._getCategory(id)
+
+@view
+@external
+def getEmployee(id: uint256) -> employee:
+    return self._getEmployee(id)
+
+@view
+@external
+def getEmployeeStatus(id: uint256) -> String[32]:
+    return self._getEmployeeStatus(id)
+
+@external
+def setItem(category: uint256, name: String[256], price: decimal) -> bool:
+    return self._setItem(category, name, price)
+
+@external
+def setCategory(name: String[256]) -> bool:
+    return self._setCategory(name)
+
+@external
+def createFarmStand(name: String[256], location: String[1024], wallet: address) -> bool:
+    return self._createFarmStand(name, location, wallet)
+
+@external
+def employ(name: String[128], wallet: address) -> bool:
+    return self._employ(name, wallet)
+
+@external
+def payEmployee(id: uint256, _value: uint256) -> bool:
+    return self._payEmployee(id, _value)
+
+@external
+def fire(id: uint256, owner: address, reason: String[32]) -> bool:
+    return self._fire(id, owner, reason)
+
+@external
+def transferOwnership(_from: address, to: address) -> bool:
+    return self._transferOwnership(_from, to)
+
+@external
+def destroyContract(to: address) -> bool:
+    self._destroyContract(to)
+
+    return True
