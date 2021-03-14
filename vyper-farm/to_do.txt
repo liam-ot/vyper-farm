@@ -1,3 +1,4 @@
 - pay employees
-- create sale function
+- create selling ability
 - create cuopons
+- create payout scheduler 

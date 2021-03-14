@@ -11,6 +11,11 @@ num_employees: public(uint256)
 #contract owner, used for permissions checking and self destruct
 owner: address
 
+#fires when an item is sold
+event NewSale:
+    itemid: indexed(uint256)
+    quantity: indexed(uint256)
+
 #fires when item created
 event NewItem:
     id: indexed(uint256)
@@ -20,7 +25,6 @@ event NewItem:
 struct farmStand:
     name: String[256]
     location: String[1024]
-    employees: uint256[32]
     wallet: address
 
 #employee struct
@@ -28,6 +32,7 @@ struct employee:
     id: uint256
     name: String[128]
     wallet: address
+    status: String[32]
 
 #item struct
 struct item:
@@ -35,6 +40,7 @@ struct item:
     category: uint256
     name: String[256]
     price: decimal
+    sales: uint256
 
 #data tracking
 idToItem: HashMap[uint256, item]
@@ -75,14 +81,15 @@ def _setItem(_category: uint256, _name: String[256], _price: decimal) -> bool:
     #check for faulty data
     assert _category <= self.num_categories, 'Category is not valid.'
     assert len(_name) <= 256, 'Name is too long. Must be < 256 characters.'
-    assert _price > 0.0, 'Cannot have a zero, or less, costing item.'
+    assert _price > 0.0, 'Price may not be less than or equal to zero.'
 
     #create item
     new_item: item = item ({
         id: self.num_items,
         category: _category,
         name: _name,
-        price: _price
+        price: _price,
+        sales: 0
     })
 
     #track changes
@@ -95,14 +102,6 @@ def _setItem(_category: uint256, _name: String[256], _price: decimal) -> bool:
     self.num_items += 1
 
     #confirm success
-    return True
-
-@internal
-def _payEmployee(_id: uint256, _value: uint256) -> bool:
-    assert _id <= self.num_employees, 'Invalid employee id.'
-
-    send(self.idToEmployee[_id].wallet, _value)
-
     return True
 
 @internal
@@ -130,7 +129,6 @@ def _createFarmStand(_name: String[256], _location: String[1024], _wallet: addre
     new_stand: farmStand = farmStand({
         name: _name,
         location: _location,
-        employees: empty(uint256[32]),
         wallet: _wallet
     })
 
@@ -146,15 +144,14 @@ def _createFarmStand(_name: String[256], _location: String[1024], _wallet: addre
 @internal
 def _employ(_name: String[128], _wallet: address) -> bool:
     #check data
-    assert len(_name) <= 128, 'Name cannot be longer than 128 characters.'
-    assert _wallet != ZERO_ADDRESS, 'Zero address not valid for wallet.'
-    assert self.num_employees < 32, 'Cannot employ more than 32 people.'
-
+    assert len(_name) <= 128, 'Name may not be longer than 128 characters.'
+    assert _wallet != ZERO_ADDRESS, 'ZERO_ADDRESS not valid for wallet.'
     #create employee object
     new_employee: employee = employee({
         id: self.num_employees,
         name: _name,
-        wallet: _wallet
+        wallet: _wallet,
+        status: 'Hired'
     })
 
     #track new employee
@@ -167,9 +164,38 @@ def _employ(_name: String[128], _wallet: address) -> bool:
     return True
 
 @internal
+def _payEmployee(_id: uint256, _value: uint256) -> bool:
+    assert _id <= self.num_employees, 'Invalid employee id.'
+
+    send(self.idToEmployee[_id].wallet, _value)
+
+    return True
+
+@internal
+def _fire(_id: uint256, _owner: address, _reason: String[32]) -> bool:
+    #check data
+    assert _id <= self.num_employees, 'Invalid employee id.'
+    assert _owner == self.owner, 'Only the owner may fire an employee.'
+    assert len(_reason) <= 32, 'Reason must be less than 32 characters.'
+
+    #set employee status
+    #should be 'Fired' or 'Quit'
+    self.idToEmployee[_id].status = _reason
+
+    #track changes
+    self.idToEmployee[_id] = empty(employee)
+
+    #update records
+    self.num_employees -= 1
+
+    #return success boolean
+    return True
+
+@internal
 def _transferOwnership(_from: address, _to: address) -> bool:
     #ensure the person changing it is the owner
-    assert _from == self.owner
+    assert _from == self.owner, 'Only the owner may transfer ownership.'
+    assert _to != ZERO_ADDRESS, 'You may not transfer ownership to a ZERO_ADDRESS.'
     
     #transfer ownership
     self.owner = _to
