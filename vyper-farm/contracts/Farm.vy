@@ -42,7 +42,7 @@ struct item:
 idToItem: HashMap[uint256, item]
 idToCategory: HashMap[uint256, String[256]]
 idToEmployee: HashMap[uint256, employee]
-standInfo: HashMap[uint256, farmStand]
+standInfo: farmStand[1]
 
 #initialize global data
 @external
@@ -62,6 +62,51 @@ def _getItem(_id: uint256) -> item:
 
     #return item
     return self.idToItem[_id]
+
+@view
+@internal
+def _getItemName(_id: uint256) -> String[256]:
+    #check for faulty id
+    assert _id <= self.num_items, 'Item id not valid.'
+
+    #return item name
+    return self.idToItem[_id].name
+
+@view
+@internal
+def _getItemPrice(_id: uint256) -> decimal:
+    #check for faulty id
+    assert _id <= self.num_items, 'Item id not valid.'
+
+    #return item price
+    return self.idToItem[_id].price
+
+@view
+@internal
+def _getItemCategory(_id: uint256) -> uint256:
+    #check for faulty id
+    assert _id <= self.num_items, 'Item id not valid.'
+
+    #return item category
+    return self.idToItem[_id].category
+
+@view
+@internal
+def _getItemSales(_id: uint256) -> uint256:
+    #check for faulty id
+    assert _id <= self.num_items, 'Item id not valid.'
+
+    #return item sales
+    return self.idToItem[_id].sales
+
+@view
+@internal
+def _getItemStatus(_id: uint256) -> String[8]:
+    #check for faulty id
+    assert _id <= self.num_items, 'Item id not valid.'
+
+    #return item status
+    return self.idToItem[_id].status
 
 @view
 @internal
@@ -91,11 +136,12 @@ def _getEmployeeStatus(_id: uint256) -> String[32]:
     return self.idToEmployee[_id].status
 
 @internal
-def _setItem(_category: uint256, _name: String[256], _price: decimal) -> bool:
+def _setItem(_category: uint256, _name: String[256], _price: decimal, _sales: uint256, _status: String[8]) -> bool:
     #check for faulty data
     assert _category <= self.num_categories, 'Category is not valid.'
     assert len(_name) <= 256, 'Name is too long. Must be < 256 characters.'
     assert _price > 0.0, 'Price may not be less than or equal to zero.'
+    assert len(_status) <= 8, 'Status must be either "Active" or "Inactive".'
 
     #create item
     new_item: item = item ({
@@ -103,8 +149,8 @@ def _setItem(_category: uint256, _name: String[256], _price: decimal) -> bool:
         category: _category,
         name: _name,
         price: _price,
-        sales: 0,
-        status: 'Active'
+        sales: _sales,
+        status: _status
     })
 
     #track changes
@@ -132,6 +178,7 @@ def _setCategory(_name: String[256]) -> bool:
     #confirm success
     return True
 
+#tested
 @internal
 def _createFarmStand(_name: String[256], _location: String[1024], _wallet: address) -> bool:
     #check data
@@ -237,6 +284,31 @@ def getItem(id: uint256) -> item:
 
 @view
 @external
+def getItemName(id: uint256) -> String[256]:
+    return self._getItemName(id)
+
+@view
+@external
+def getItemCategory(id: uint256) -> uint256:
+    return self._getItemCategory(id)
+
+@view
+@external
+def getItemPrice(id: uint256) -> decimal:
+    return self._getItemPrice(id)
+
+@view
+@external
+def getItemSales(id: uint256) -> uint256:
+    return self._getItemSales(id)
+
+@view
+@external
+def getItemStatus(id: uint256) -> String[8]:
+    return self._getItemStatus(id)
+
+@view
+@external
 def getCategory(id: uint256) -> String[256]:
     return self._getCategory(id)
 
@@ -250,9 +322,49 @@ def getEmployee(id: uint256) -> employee:
 def getEmployeeStatus(id: uint256) -> String[32]:
     return self._getEmployeeStatus(id)
 
+@view
 @external
-def setItem(category: uint256, name: String[256], price: decimal) -> bool:
-    return self._setItem(category, name, price)
+def getNumEmployees() -> uint256:
+    return self.num_employees
+
+@view
+@external
+def getNumItems() -> uint256:
+    return self.num_items
+
+@view
+@external
+def getNumCategories() -> uint256:
+    return self.num_categories
+
+@view
+@external
+def getStandStatus() -> bool:
+    return self.stand_created
+
+@view
+@external
+def getStandName() -> String[256]:
+    return self.standInfo[0].name
+
+@view
+@external
+def getStandLocation() -> String[1024]:
+    return self.standInfo[0].location
+
+@view
+@external
+def getStandWallet() -> address:
+    return self.standInfo[0].wallet
+
+@view
+@external
+def getOwner() -> address:
+    return self.owner
+
+@external
+def setItem(category: uint256, name: String[256], price: decimal, sales: uint256, status: String[8]) -> bool:
+    return self._setItem(category, name, price, sales, status)
 
 @external
 def setCategory(name: String[256]) -> bool:

@@ -1,1 +1,4 @@
-{}
+{
+  "tests/test_set_item.py::test_set_item_sales_floor": true,
+  "tests/test_set_item.py::test_set_item_sets_id": true
+}
