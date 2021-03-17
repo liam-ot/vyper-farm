@@ -1,2 +1,5 @@
 .DS_store
 .pytest_cache
+.json
+.hypothesis
+__pycache__
