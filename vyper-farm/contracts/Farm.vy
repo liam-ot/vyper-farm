@@ -19,7 +19,7 @@ event NewItem:
 #farmStand struct
 struct farmStand:
     name: String[256]
-    location: String[1024]
+    location: String[512]
     wallet: address
 
 #employee struct
@@ -180,10 +180,10 @@ def _setCategory(_name: String[256]) -> bool:
 
 #tested
 @internal
-def _createFarmStand(_name: String[256], _location: String[1024], _wallet: address) -> bool:
+def _createFarmStand(_name: String[256], _location: String[512], _wallet: address) -> bool:
     #check data
     assert len(_name) <= 256, 'Name must be less than 256 characters.'
-    assert len(_location) <= 1024, 'Location must be less than 1024 characters.'
+    assert len(_location) <= 512, 'Location must be less than 512 characters.'
     assert _wallet == self.owner, 'Address does not match contract owner.'
     assert self.stand_created == False, 'Farm stand already created on this contract.'
 
@@ -349,7 +349,7 @@ def getStandName() -> String[256]:
 
 @view
 @external
-def getStandLocation() -> String[1024]:
+def getStandLocation() -> String[512]:
     return self.standInfo[0].location
 
 @view
@@ -371,7 +371,7 @@ def setCategory(name: String[256]) -> bool:
     return self._setCategory(name)
 
 @external
-def createFarmStand(name: String[256], location: String[1024], wallet: address) -> bool:
+def createFarmStand(name: String[256], location: String[512], wallet: address) -> bool:
     return self._createFarmStand(name, location, wallet)
 
 @external
