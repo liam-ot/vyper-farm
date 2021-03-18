@@ -1,5 +1,5 @@
-- pay employees - done
-- create selling ability
+- pay employees 
 - create cuopons
 - create payout scheduler
 - create test modules 
+- set up store functions
