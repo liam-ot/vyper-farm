@@ -54,6 +54,11 @@ def __init__():
     self.num_employees = 0
 
 # internal functions #
+
+#
+#   get/set functions
+#
+
 @view
 @internal
 def _getItem(_id: uint256) -> item:
@@ -110,7 +115,7 @@ def _getItemStatus(_id: uint256) -> String[8]:
 
 @view
 @internal
-def _getCategory(_id: uint256) -> String[256]:
+def _getCategoryName(_id: uint256) -> String[256]:
     #check for faulty id
     assert _id <= self.num_categories, 'Category id not valid.'
 
@@ -178,6 +183,10 @@ def _setCategory(_name: String[256]) -> bool:
     #confirm success
     return True
 
+#
+#    farm stand functions
+#
+
 #tested
 @internal
 def _createFarmStand(_name: String[256], _location: String[512], _wallet: address) -> bool:
@@ -202,6 +211,23 @@ def _createFarmStand(_name: String[256], _location: String[512], _wallet: addres
 
     #return success boolean
     return True
+
+@internal
+def _transferOwnership(_from: address, _to: address) -> bool:
+    #ensure the person changing it is the owner
+    assert _from == self.owner, 'Only the owner may transfer ownership.'
+    assert _to != ZERO_ADDRESS, 'You may not transfer ownership to a ZERO_ADDRESS.'
+    
+    #transfer ownership
+    self.owner = _to
+
+    #return success boolean
+    return True
+
+
+#
+#    employee functions
+#
 
 @internal
 def _employ(_name: String[128], _wallet: address) -> bool:
@@ -253,17 +279,9 @@ def _fire(_id: uint256, _owner: address, _reason: String[32]) -> bool:
     #return success boolean
     return True
 
-@internal
-def _transferOwnership(_from: address, _to: address) -> bool:
-    #ensure the person changing it is the owner
-    assert _from == self.owner, 'Only the owner may transfer ownership.'
-    assert _to != ZERO_ADDRESS, 'You may not transfer ownership to a ZERO_ADDRESS.'
-    
-    #transfer ownership
-    self.owner = _to
-
-    #return success boolean
-    return True
+#
+#    destroy contract
+#
 
 #############################WARNING##################################
 #THIS WILL DESTROY THE CONTRACT AND SEND TOTAL ETHER BALANCE TO '_to'#
@@ -277,6 +295,7 @@ def _destroyContract(_to: address):
     selfdestruct(_to)
 
 #external functions
+
 @view
 @external
 def getItem(id: uint256) -> item:
@@ -310,7 +329,7 @@ def getItemStatus(id: uint256) -> String[8]:
 @view
 @external
 def getCategory(id: uint256) -> String[256]:
-    return self._getCategory(id)
+    return self._getCategoryName(id)
 
 @view
 @external
